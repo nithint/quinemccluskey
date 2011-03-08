@@ -16,6 +16,8 @@ minterm::minterm(const short mterm)
 mtermVal.push_back(mterm);
 }
 minterm::~minterm(void)
+
+
 //compares the objs mintermVal with parameters and returns the 
 //combined value else returns NULL.
 minterm minterm::canCombine(minterm& other)
