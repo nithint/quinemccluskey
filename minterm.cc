@@ -22,6 +22,7 @@ minterm::~minterm(void)
 //combined value else returns NULL.
 minterm minterm::canCombine(minterm& other)
 {
+//NOTE: do not modify the original use a copy
  vector<short>::iterator it;
  vector<short>::iterator otherit;
  //do a bit wise minterm comparison and insert 'x' whereever they differ.
