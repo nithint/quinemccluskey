@@ -84,16 +84,19 @@ while( mintermcount< noOfTerms)
              
 }
 
-vector< vector <vector<minterm> > mintermArray();
+vector< vector <vector<minterm> > mintermArray(noOfVars-1);
+
+// initialize cells
+for(int i = 0; i < mintermArray.size(); i++)
+{
+   mintermArray[i] = vector<vector<minterm>>(noOfVars);
+}
 
 //initial setup: fill up all the uncombined terms ( all terms will end up in the first row -with zero 'x's)
-for(i=0; i < mintermArray.size() ; ++i)
-for ( j=0; j < mintermArray[i].size();j++)
-{
-    mintermit=allMinterms.begin();
+mintermit=null;
        for ( mintermit=allMinterms.begin() ; mintermit != allMinterms.end(); mintermit++ )
-           if (mintermit->countParameters(1)==j) //check for the no of ones only (since we know no of xs is zero anyway)
-           mintermArray[i][j]=(*mintermit); //VERIFY:is this syntax right?
+           int j = mintermit->countParameters(1);           
+           mintermArray[0][j].push_back(*mintermit); //VERIFY:is this syntax right?
     }
 
 //QM :combining terms
