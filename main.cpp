@@ -12,6 +12,16 @@ desc:main method for minlogic
 using namespace std;
 //global list of prime implicants
 list<minterm> primeImplicants;
+/**
+* convert string to number
+*/
+template <class T>
+bool tryParse(T& t,
+const std::string& s)
+{
+  std::istringstream iss(s);
+  return !(iss >> t).fail();
+}
 
 int main(int argc, char *argv[])
 {
@@ -52,14 +62,10 @@ while( mintermcount< noOfTerms)
              fileData.copy(buffer,noOfVars);
              try //NOTE to self: looks weird but might work ref http://www.codeguru.com/forum/showthread.php?t=231054
              {
-                minterm m(lexical_cast<short>(buffer.c_str()) )
+                short t;
+                minterm m(tryParse(t,buffer));
                 dontCares.push_back(m);
                 allMinterms.push_back(m);
-             }
-             catch(bad_lexical_cast&)
-             {
-                dontCares.push_back(0);
-                allMinterms.push_back(0));
              }
             
           }
@@ -69,12 +75,9 @@ while( mintermcount< noOfTerms)
            fileData.copy(buffer,noOfVars);
              try //NOTE to self: looks weird but might work ref http://www.codeguru.com/forum/showthread.php?t=231054
              {
-                minterm m(lexical_cast<short>(buffer.c_str()) )
+                short t;
+                minterm m(tryParse(t,buffer));
                 allMinterms.push_back(m);
-             }
-             catch(bad_lexical_cast&)
-             {
-                allMinterms.push_back(0));
              }
          }
          mintermcount++;
