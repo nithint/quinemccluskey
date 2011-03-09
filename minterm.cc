@@ -11,6 +11,8 @@ created:6-3-2011
 using namespace std;
 
 //constructor
+minterm::minterm()
+{}
 minterm::minterm(vector<short> mterm)
 {
 this->mintermVal = vector<short>(mterm);
@@ -21,26 +23,30 @@ minterm::~minterm(void) {}
 
 //compares the objs mintermVal with parameters and returns the
 //combined value else returns NULL.
-minterm minterm::canCombine(minterm& other)
+bool minterm::canCombine(minterm& other, minterm& combined)
 {
-//NOTE: do not modify the original use a copy
+vector<short> termBits = vector<short>(this->getTerm());
  vector<short>::iterator it;
  vector<short>::iterator otherit;
  int bitDiff = 0;
  //do a bit wise minterm comparison and insert 'x' whereever they differ.
- for (it=this->mintermVal.begin() , otherit=other.getTerm().begin(); it < this->mintermVal.end(); it++ ,otherit++)
+ for (it=termBits.begin() , otherit=other.getTerm().begin(); it < termBits.end(); it++ ,otherit++)
  {
 	 if ( *it != *otherit)
 	 {
-	  mintermVal.insert(it,'x',1); //VERIFY:is this a valid expression?
+	  termBits.insert(it,X); //VERIFY:is this a valid expression?
 	  bitDiff++;
 	 }
  }
+
  //return the result ONLY if there is a one bit difference else ret NULL
  if( bitDiff==1)
- return(mintermVal);
+ {
+	combined = minterm(termBits);
+	return true;
+ }
  else
- return NULL;
+	return false;
 }
 
 
@@ -61,7 +67,7 @@ int minterm::countParameters(short p)
 bool minterm::coveredBy(minterm other)
 {
 	vector<short> term = other.getTerm();
-	for(int i = 0; i < term.size(); i++)
+	for(unsigned int i = 0; i < term.size(); i++)
 	{
 		if(term[i] != X && term[i] != getTerm()[i])
 			return false;
@@ -76,10 +82,10 @@ vector<short> minterm::getTerm()
 
 string minterm::toString()
 {
-	vector<char> alphabet = {'A','B','C','D','E','F','G','H','I','J','K','L','M',
+	char alphabet[] = {'A','B','C','D','E','F','G','H','I','J','K','L','M',
 		'N','O','P','Q','R','S','T','U','V','W','X','Y','Z'};
 	string result = "";
-	for(int i = 0; i < this->getTerm().size(); i++)
+	for(unsigned int i = 0; i < this->getTerm().size(); i++)
 	{
 		if(this->getTerm()[i] != X)
 		{
@@ -91,4 +97,20 @@ string minterm::toString()
 		}
 	}
 		return result;
+}
+
+bool minterm::equals(minterm& other)
+{
+	vector<short>::iterator it;
+	 vector<short>::iterator otherit;
+	 int bitDiff = 0;
+	 //do a bit wise minterm comparison and insert 'x' whereever they differ.
+	 for (it=this->mintermVal.begin() , otherit=other.getTerm().begin(); it < this->mintermVal.end(); it++ ,otherit++)
+	 {
+		 if ( *it != *otherit)
+		 {
+		  return false;
+		 }
+	 }
+	 return true;
 }

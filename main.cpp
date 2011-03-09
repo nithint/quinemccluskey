@@ -9,41 +9,40 @@ desc:main method for minlogic
 #include <list>
 #include <map>
 #include <fstream>
-
-#define DONTCARE 'd'
-#define ONE 1
-#define ZERO 0
-#define X 2
+#include <sstream>
 
 using namespace std;
 //global list of prime implicants
-list<minterm> primeImplicants;
+vector<minterm> primeImplicants = vector<minterm>();
 
 bool covered(vector<vector<bool>>& coverTable, int rows, int cols);
-int findEssentialPI(vector<vector<bool>>& coverTable, vector<minterm>& origMinterms, 
-	vector<minterm>& primeImplicants);
+int findEssentialPI(vector<vector<bool>>& coverTable, int rows, 
+					int cols);
+int contains(minterm& term, vector<minterm>& mintermList);
+int findLargestCoveringPI(vector<vector<bool>>& coverTable, int rows, int cols);
+void removePI(vector<vector<bool>>& coverTable, int p, int cols);
 vector<minterm> removeDontCares(vector<minterm>& allMinterms, vector<minterm>& dontcares);
 /**
 * convert string to number
 */
 template <class T>
 bool tryParse(T& t,
-	const std::string& s)
+			  const std::string& s)
 {
 	std::istringstream iss(s);
 	return !(iss >> t).fail();
 }
 vector<minterm> solveCoveringTable(vector<minterm> allMinterms, vector<minterm> dontcares,
-	vector<minterm> primeImplicants)
+								   vector<minterm> primeImplicants)
 {
 	// create the covering table
 	vector<vector<bool>> coverTable = vector<vector<bool>>();
 	// remove don't care output terms from original minterms
 	vector<minterm> origMinterms = removeDontCares(allMinterms, dontcares);
 
-	for(int i = 0; i < primeImplicants.size(); i++)
+	for(unsigned int i = 0; i < primeImplicants.size(); i++)
 	{
-		for(int j = 0; j < origMinterms.size(); j++)
+		for(unsigned int j = 0; j < origMinterms.size(); j++)
 		{
 			coverTable[i][j] = origMinterms[j].coveredBy(primeImplicants[i]);
 		}
@@ -78,7 +77,7 @@ vector<minterm> solveCoveringTable(vector<minterm> allMinterms, vector<minterm> 
 void printPrimeImplicants(vector<minterm> pi)
 {
 	string result = "";
-	for(int i = 0; i < pi.size(); i++)
+	for(unsigned int i = 0; i < pi.size(); i++)
 	{
 		result += pi[i].toString();
 
@@ -88,9 +87,35 @@ void printPrimeImplicants(vector<minterm> pi)
 	printf(result.c_str());
 }
 
-void countSomething(vector<minterm> piList)
-{
 
+int countLiterals(vector<minterm> piList)
+{
+	if(piList.size() == 0)
+		return 0;
+	vector<int> countOn = vector<int>(piList[0].getTerm().size(), 0);
+	vector<int> countOff = vector<int>(piList[0].getTerm().size(), 0);
+
+	for(unsigned int i = 0; i < piList.size(); i++)
+	{
+		vector<short> termBits = piList[i].getTerm();
+		for(unsigned int j= 0; j < termBits.size(); j++)
+		{
+			if(termBits[j] == 0)
+				countOff[j]++;
+			else if (termBits[j] == 1)
+				countOn[j]++;
+		}
+	}
+
+	int totalCount = 0;
+	for(int i = 0; i < countOn.size(); i++)
+	{
+		if(countOn[i] > 0)
+			totalCount++;
+		if(countOff[i] > 0)
+			totalCount++;
+	}
+	return totalCount;
 }
 
 // remove the essential pi from cover table
@@ -144,7 +169,7 @@ int findLargestCoveringPI(vector<vector<bool>>& coverTable, int rows, int cols)
 }
 
 int findEssentialPI(vector<vector<bool>>& coverTable, int rows, 
-	int cols)
+					int cols)
 {
 	// column first search for columns covered by only 1 PI
 	for(int i = 0; i < cols; i++)
@@ -219,7 +244,7 @@ int main(int argc, char *argv[])
 	while( mintermcount< noOfTerms)
 	{
 		getline(fin,fileData);
-		minterm m = NULL;
+		minterm m = minterm();
 		buffer = fileData.substr(0,noOfVars);
 		short t;
 		if(!tryParse(t,buffer))
@@ -249,44 +274,55 @@ int main(int argc, char *argv[])
 	//initial setup: fill up all the uncombined terms ( all terms will end up in the first row -with zero 'x's)
 	minterm* mintermit=NULL;
 	for (vector<minterm>::iterator mintermit=allMinterms.begin() ; mintermit != allMinterms.end(); mintermit++ )
-		int j = mintermit->countParameters(1);
-	mintermArray[0][j].push_back(*mintermit);
+	{	
+		int j = mintermit->countParameters(ONE);
+		int i = mintermit->countParameters(X);
+		mintermArray[i][j].push_back(*mintermit);
+	}
 
-//QM :combining terms
-//run thru the array from top to bottom and check adjacent cells i,j if they can be combined
-//put the result in the [i+1th][j-1th] location
-for(int xes=0; xes < noOfVars -1; xes++) //for every x dont care bit
-{
-	for(int ones=0; ones < noOfVars -1; ones++)  //for every # of ones
+	primeImplicants = removeDontCares(allMinterms, dontCares);
+	//QM :combining terms
+	//run thru the array from top to bottom and check adjacent cells i,j if they can be combined
+	//put the result in the [i+1th][j-1th] location
+	for(int xes=0; xes < noOfVars -1; xes++) //for every x dont care bit
 	{
-		vector<minterm> left   = mintermArray[xes][ones];
-		vector<minterm> right  = mintermArray[xes][ones+1];
-		vector<minterm> out    = mintermArray[xes+1][ones];
-		for(int i = 0; i < left.size(); i++)
+		for(int ones=0; ones < noOfVars -1; ones++)  //for every # of ones
 		{
-			for(int j = 0; j < right.size(); j++)
+			vector<minterm> left   = mintermArray[xes][ones];
+			vector<minterm> right  = mintermArray[xes][ones+1];
+			vector<minterm> out    = mintermArray[xes+1][ones];
+			for(int i = 0; i < left.size(); i++)
 			{
-				minterm combined = left[i].canCombine(right[j]);
-				if(combined != null)
+				for(int j = 0; j < right.size(); j++)
 				{
-					
+					minterm combined = minterm();
+					bool canCombine = left[i].canCombine(right[j], combined);
+					if(canCombine)
+					{
+						if(contains(combined, out) == -1)
+						{
+							out.push_back(combined);
+						}
+						vector<minterm>::iterator itr = primeImplicants.begin();
+						primeImplicants.erase(itr+contains(left[i], primeImplicants));
+						itr = primeImplicants.begin();
+						primeImplicants.erase(itr+contains(right[j], primeImplicants));
+						if(contains(combined, primeImplicants) == -1)
+							primeImplicants.push_back(combined);
+					}
+				}
 			}
-		}
-		result= left.canCombine(right); //check if the terms left and right 'cells' can be combined
-		if(result!=NULL) //check if the combined term already exists in the 'destination' cell
-		{
-			if (! ( result.ifPresent(out))) //add the combined term to the destination cell.
-			{
-				vector<short>::iterator it;
-				for it=result.begin() ; it < result.end(); it++ )
-					mintermArray[i+1][j].push_back(*it);
-
-			}
-		} 
-		else //we cant combine the terms so add them to teh prime implicant list
-		{
-			primeImplicants.push_back(left); 
-			primeImplicants.push_back(right); 
 		}
 	}
+}
+
+int contains(minterm& term, vector<minterm>& mintermList)
+{
+	for(int i = 0; i < mintermList.size(); i++)
+	{
+		if(mintermList[i].equals(term))
+			return i;
+	}
+
+	return -1;
 }
