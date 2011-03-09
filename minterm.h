@@ -32,3 +32,20 @@ minterm canCombine(&minterm); //compares the objs mintermVal with parameters and
 bool ifPresent(minterm &minterm ); //to check if the passed minterm is present in the list
 
 };
+
+
+//checks if a given minterm is present 
+bool ifPresent(&minterm other )
+{
+     int diff=0;
+      vector<short>::iterator it;
+      vector<short>::iterator otherit;
+      for (it=this->mintermVal.begin(),otherit=other.begin() ; it < this->mtermVal.end(); it++ ,otherit++)
+      {
+          if((*it)!=(*otherit)) 
+          diff++;
+      } 
+      if(diff>0) return TRUE;
+      else return FALSE;
+  
+}
