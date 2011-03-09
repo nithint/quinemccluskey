@@ -13,5 +13,6 @@ public:
 	vector<short> getTerm();
 	// returns true if other covers this minterm, false otherwise
 	bool coveredBy(minterm other);
-};
 
+	string toString();
+};
