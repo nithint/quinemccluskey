@@ -15,19 +15,18 @@ using namespace std;
 //global list of prime implicants
 vector<minterm> primeImplicants = vector<minterm>();
 
-bool covered(vector<vector<bool>>& coverTable, int rows, int cols);
-int findEssentialPI(vector<vector<bool>>& coverTable, int rows, 
+bool covered(vector<vector<bool> >& coverTable, int rows, int cols);
+int findEssentialPI(vector<vector<bool> >& coverTable, int rows, 
 					int cols);
 int contains(minterm& term, vector<minterm>& mintermList);
-int findLargestCoveringPI(vector<vector<bool>>& coverTable, int rows, int cols);
-void removePI(vector<vector<bool>>& coverTable, int p, int cols);
+int findLargestCoveringPI(vector<vector<bool> >& coverTable, int rows, int cols);
+void removePI(vector<vector<bool> >& coverTable, int p, int cols);
 vector<minterm> removeDontCares(vector<minterm>& allMinterms, vector<minterm>& dontcares);
 /**
 * convert string to number
 */
 template <class T>
-bool tryParse(T& t,
-			  const std::string& s)
+bool tryParse(T& t,const std::string& s)
 {
 	std::istringstream iss(s);
 	return !(iss >> t).fail();
@@ -36,7 +35,7 @@ vector<minterm> solveCoveringTable(vector<minterm> allMinterms, vector<minterm> 
 								   vector<minterm> primeImplicants)
 {
 	// create the covering table
-	vector<vector<bool>> coverTable = vector<vector<bool>>();
+	vector<vector<bool> > coverTable = vector<vector<bool> >();
 	// remove don't care output terms from original minterms
 	vector<minterm> origMinterms = removeDontCares(allMinterms, dontcares);
 
@@ -120,7 +119,7 @@ int countLiterals(vector<minterm> piList)
 
 // remove the essential pi from cover table
 // sets all columns covered by the ess PI to zero 
-void removePI(vector<vector<bool>>& coverTable, int p, int cols)
+void removePI(vector<vector<bool> >& coverTable, int p, int cols)
 {
 	// zero out all columns with p in it
 	for(int i = 0; i < cols; i++)
@@ -135,7 +134,7 @@ void removePI(vector<vector<bool>>& coverTable, int p, int cols)
 		}
 	}
 }
-bool covered(vector<vector<bool>>& coverTable, int rows, int cols)
+bool covered(vector<vector<bool> >& coverTable, int rows, int cols)
 {
 	// covered if the cover table is full of zero
 	for(int i = 0; i < rows; i++)
@@ -145,7 +144,7 @@ bool covered(vector<vector<bool>>& coverTable, int rows, int cols)
 	return true;
 }
 
-int findLargestCoveringPI(vector<vector<bool>>& coverTable, int rows, int cols)
+int findLargestCoveringPI(vector<vector<bool> >& coverTable, int rows, int cols)
 {
 	int sum = 0;
 	int pos = 0;
@@ -168,7 +167,7 @@ int findLargestCoveringPI(vector<vector<bool>>& coverTable, int rows, int cols)
 	return pos;
 }
 
-int findEssentialPI(vector<vector<bool>>& coverTable, int rows, 
+int findEssentialPI(vector<vector<bool> >& coverTable, int rows, 
 					int cols)
 {
 	// column first search for columns covered by only 1 PI
@@ -263,12 +262,12 @@ int main(int argc, char *argv[])
 		mintermcount++;
 	}
 
-	vector< vector <vector<minterm>>> mintermArray(noOfVars-1);
+	vector< vector <vector<minterm> > > mintermArray(noOfVars-1);
 
 	// initialize cells
 	for(int i = 0; i < mintermArray.size(); i++)
 	{
-		mintermArray[i] = vector<vector<minterm>>(noOfVars);
+		mintermArray[i] = vector<vector<minterm> >(noOfVars);
 	}
 
 	//initial setup: fill up all the uncombined terms ( all terms will end up in the first row -with zero 'x's)
@@ -314,6 +313,10 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
+
+	vector<minterm> essPI = solveCoveringTable(allMinterms, dontCares, primeImplicants);
+	printPrimeImplicants(essPI);
+	printf("Number of literals = %d", countLiterals(essPI));
 }
 
 int contains(minterm& term, vector<minterm>& mintermList)

@@ -29,6 +29,4 @@ public:
 
 	bool canCombine(minterm& other, minterm& combined); //compares the objs mintermVal with parameters and returns the
 							  //combined value else returns NULL.
-bool ifPresent(minterm &minterm ); //to check if the passed minterm is present in the list
-
 };
