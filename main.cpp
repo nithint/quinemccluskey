@@ -257,36 +257,31 @@ int main(int argc, char *argv[])
 //put the result in the [i+1th][j-1th] location
 for(int xes=0; xes < noOfVars -1; xes++) //for every x dont care bit
 {
-	for(int ones=0; ones < noOfVars -1; ones++)  //for every # of ones
-	{
-		vector<minterm> left   = mintermArray[xes][ones];
-		vector<minterm> right  = mintermArray[xes][ones+1];
-		vector<minterm> out    = mintermArray[xes+1][ones];
-		for(int i = 0; i < left.size(); i++)
-		{
-			for(int j = 0; j < right.size(); j++)
-			{
-				minterm combined = left[i].canCombine(right[j]);
-				if(combined != null)
-				{
-					
-			}
-		}
-		result= left.canCombine(right); //check if the terms left and right 'cells' can be combined
-		if(result!=NULL) //check if the combined term already exists in the 'destination' cell
-		{
-			if (! ( result.ifPresent(out))) //add the combined term to the destination cell.
-			{
-				vector<short>::iterator it;
-				for it=result.begin() ; it < result.end(); it++ )
-					mintermArray[i+1][j].push_back(*it);
+for(int ones=0; ones < noOfVars -1; ones++) //for every # of ones
+{
+vector<minterm> left = mintermArray[xes][ones]; //list<minterm> left = mintermArray[xes][ones];
+vector<minterm> right = mintermArray[xes][ones+1]; //list<minterm> right = mintermArray[xes][ones +1];
+vector<minterm> out = mintermArray[xes+1][ones]; //list<minterm> out =mintermArray[xes+1][ones];
+for(int i = 0; i < (int)left.size(); i++)
+{
+for(int j = 0; j < (int)right.size(); j++)
+{
+minterm combined = left[i].canCombine(right[j]); //list<minterm> combined = canCombine(left, right);
+if(combined != NULL)
+{
+//check if the combined result is already present if not,add the combined term to the destination cell.
+if (! ( result.ifPresent(out))) 
+{
+vector<short>::iterator it;
+for( it=result.begin() ; it < result.end(); it++ )
+mintermArray[i+1][j].push_back(*it);
+}
 
-			}
-		} 
-		else //we cant combine the terms so add them to teh prime implicant list
-		{
-			primeImplicants.push_back(left); 
-			primeImplicants.push_back(right); 
-		}
-	}
+}
+else //we cant combine the terms so add them to teh prime implicant list
+{
+	primeImplicants.push_back(left);
+	primeImplicants.push_back(right);
+}
+}
 }
