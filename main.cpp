@@ -7,7 +7,7 @@ desc:main method for minlogic
 #include <string>
 #include <list>
 #include <map>
-#define DONTCARE "d"
+#define DONTCARE 2
 
 using namespace std;
 //global list of prime implicants
@@ -73,7 +73,7 @@ while( mintermcount< noOfTerms)
          {
                          
            fileData.copy(buffer,noOfVars);
-             try //NOTE to self: looks weird but might work ref http://www.codeguru.com/forum/showthread.php?t=231054
+             try 
              {
                 short t;
                 minterm m(tryParse(t,buffer));
@@ -95,24 +95,36 @@ for(int i = 0; i < mintermArray.size(); i++)
 //initial setup: fill up all the uncombined terms ( all terms will end up in the first row -with zero 'x's)
 mintermit=null;
        for ( mintermit=allMinterms.begin() ; mintermit != allMinterms.end(); mintermit++ )
-           int j = mintermit->countParameters(1);           
+           int j = mintermit->countParameters(1);
            mintermArray[0][j].push_back(*mintermit); //VERIFY:is this syntax right?
     }
 
 //QM :combining terms
 //run thru the array from top to bottom and check adjacent cells i,j if they can be combined
 //put the result in the [i+1th][j-1th] location
-for(i=0; i < mintermArray.size() ; ++i)
-for ( j=0; j < mintermArray[i].size();j++)
- {
-       ( minterm[i][j].canCombine(minterm[i][j]) )
-    {//adjacent terms differ by one bit so combine
-      
-    }
-    
-       
- }
+for(int i=0; i <= noOfVars - 1; i++) //for every x dont care bit
+{
+        for(int j=0; ones <= numVars - 1; ones++)  //for every # of ones
+        {
+                minterm left   = mintermArray[i][j];
+                minterm right  = mintermArray[i][j+1];
+                minterm out    = mintermArray[i+1][j];
+                result= left.canCombine(right); //check if the terms left and right 'cells' can be combined
+                if(result!=NULL) //check if the combined term already exists in the 'destination' cell
+                {
+                                 if (! ( result.ifPresent(out))) //add the combined term to the destination cell.
+                                 {
+                                       vector<short>::iterator it;
+                                       for it=result.begin() ; it < result.end(); it++ )
+                                       mintermArray[i+1][j].push_back(*it);
+                                       
+                                 }
+                } 
+                else //we cant combine the terms so add them to teh prime implicant list
+                {
+                    primeImplicants.push_back(left); 
+                    primeImplicants.push_back(right); 
+                }
+        }
+}
  
-
-
-
