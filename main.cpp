@@ -257,7 +257,7 @@ int main(int argc, char *argv[])
 			short t;
 			if(!tryParse(t,buffer.substr(i,1)))
 			{
-				printf("Invalid input found: %s", fileData);
+				printf("Invalid input found: %s", fileData.c_str());
 				exit(0);
 			}
 			mintermBits.push_back(t);
