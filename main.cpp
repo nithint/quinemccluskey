@@ -1,36 +1,48 @@
-#include<minterm.h>l
+/*Filename: main.cpp
+desc:main method for minlogic
+*/
+#include <minterm.h>
 #include <cstdlib>
 #include <iostream>
 #include <string>
 #include <list>
 #include <map>
-#define DONTCARE //TBD
+#define DONTCARE 2
 
 using namespace std;
 //global list of prime implicants
 list<minterm> primeImplicants;
-
+/**
+* convert string to number
+*/
+template <class T>
+bool tryParse(T& t,
+const std::string& s)
+{
+  std::istringstream iss(s);
+  return !(iss >> t).fail();
+}
 
 int main(int argc, char *argv[])
 {
-	if(argc != 2)
-	{
-		cout << "Usage: " << argv[0] << "filename" << endl;
-		exit(1);
-	}
+if(argc != 2)
+{
+cout << "Usage: " << argv[0] << "filename" << endl;
+exit(1);
+}
 //check if the input minterm file exists
-		ifstream fin(argv[1]);
+ifstream fin(argv[1]);
 
-	if(!fin)
-	{
-		cout << "Minterm (input) file " << argv[1] << " not found." << endl;
-		exit(1);
-	}
-string fileData;        //used to read the implicant input file    
+if(!fin)
+{
+cout << "Minterm (input) file " << argv[1] << " not found." << endl;
+exit(1);
+}
+string fileData; //used to read the implicant input file
 string buffer;
 list<minterm>dontCares; //list of all don't cares
 list<minterm>allMinterms; //list of all minterms (this includes dc)
-int noOfvars; 
+int noOfvars;
 int noOfTerms;
    
 //read the no.of vars and no of terms
@@ -43,22 +55,77 @@ size_t found;
 while( mintermcount< noOfTerms)
 {
          getline(fin,fileData);
-         //If a term is marked as dont care ,put it into the dc list else add
-         //it to the minterm list.
+         //If a term is marked as dont care ,put it into the dc and mintern lists.
           size_t found=fileData.find(DONTCARE);
-          if (found!=string::npos)
+          if (found!=string::npos) // the term is a dont care eg: 1001 d
           {
              fileData.copy(buffer,noOfVars);
-             minterm m(buffer);
-             dontCares.push_back(m);
+             try //NOTE to self: looks weird but might work ref http://www.codeguru.com/forum/showthread.php?t=231054
+             {
+                short t;
+                minterm m(tryParse(t,buffer));
+                dontCares.push_back(m);
+                allMinterms.push_back(m);
+             }
+            
           }
-        else
+        else //the term is not a dc - so add it only to the minterm list
          {
-             fileData.copy(buffer,noOfVars);
-             minterm m(buffer);             
-             allMinterms.push_back(m);
+                         
+           fileData.copy(buffer,noOfVars);
+             try 
+             {
+                short t;
+                minterm m(tryParse(t,buffer));
+                allMinterms.push_back(m);
+             }
          }
-         mintermcount++;        
-              
+         mintermcount++;
+             
 }
+
+vector< vector <vector<minterm> > mintermArray(noOfVars-1);
+
+// initialize cells
+for(int i = 0; i < mintermArray.size(); i++)
+{
+   mintermArray[i] = vector<vector<minterm>>(noOfVars);
+}
+
+//initial setup: fill up all the uncombined terms ( all terms will end up in the first row -with zero 'x's)
+mintermit=null;
+       for ( mintermit=allMinterms.begin() ; mintermit != allMinterms.end(); mintermit++ )
+           int j = mintermit->countParameters(1);
+           mintermArray[0][j].push_back(*mintermit); //VERIFY:is this syntax right?
+    }
+
+//QM :combining terms
+//run thru the array from top to bottom and check adjacent cells i,j if they can be combined
+//put the result in the [i+1th][j-1th] location
+for(int i=0; i <= noOfVars - 1; i++) //for every x dont care bit
+{
+        for(int j=0; ones <= numVars - 1; ones++)  //for every # of ones
+        {
+                minterm left   = mintermArray[i][j];
+                minterm right  = mintermArray[i][j+1];
+                minterm out    = mintermArray[i+1][j];
+                result= left.canCombine(right); //check if the terms left and right 'cells' can be combined
+                if(result!=NULL) //check if the combined term already exists in the 'destination' cell
+                {
+                                 if (! ( result.ifPresent(out))) //add the combined term to the destination cell.
+                                 {
+                                       vector<short>::iterator it;
+                                       for it=result.begin() ; it < result.end(); it++ )
+                                       mintermArray[i+1][j].push_back(*it);
+                                       
+                                 }
+                } 
+                else //we cant combine the terms so add them to teh prime implicant list
+                {
+                    primeImplicants.push_back(left); 
+                    primeImplicants.push_back(right); 
+                }
+        }
+}
+ 
 
