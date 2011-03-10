@@ -35,9 +35,14 @@ vector<minterm> solveCoveringTable(vector<minterm> allMinterms, vector<minterm> 
 								   vector<minterm> primeImplicants)
 {
 	// create the covering table
-	vector<vector<bool> > coverTable = vector<vector<bool> >();
+	vector<vector<bool> > coverTable = vector<vector<bool> >(primeImplicants.size());
 	// remove don't care output terms from original minterms
 	vector<minterm> origMinterms = removeDontCares(allMinterms, dontcares);
+	// init the cover table cells
+	for(int i = 0; i < primeImplicants.size(); i++)
+	{
+		coverTable[i] = vector<bool>(origMinterms.size(),false);
+	}
 
 	for(unsigned int i = 0; i < primeImplicants.size(); i++)
 	{
@@ -53,7 +58,7 @@ vector<minterm> solveCoveringTable(vector<minterm> allMinterms, vector<minterm> 
 	int p = 0;
 	while(p!= -1)
 	{
-		int p = findEssentialPI(coverTable, primeImplicants.size(), origMinterms.size());
+		p = findEssentialPI(coverTable, primeImplicants.size(), origMinterms.size());
 		if(p!= -1)
 		{
 			// add p to ess pi
@@ -75,7 +80,7 @@ vector<minterm> solveCoveringTable(vector<minterm> allMinterms, vector<minterm> 
 
 void printPrimeImplicants(vector<minterm> pi)
 {
-	string result = "";
+	string result = "F = ";
 	for(unsigned int i = 0; i < pi.size(); i++)
 	{
 		result += pi[i].toString();
@@ -84,6 +89,7 @@ void printPrimeImplicants(vector<minterm> pi)
 			result += " + ";
 	}
 	printf(result.c_str());
+	printf("\n");
 }
 
 
@@ -214,7 +220,7 @@ int main(int argc, char *argv[])
 {
 	if(argc != 2)
 	{
-		cout << "Usage: " << argv[0] << "filename" << endl;
+		cout << "Usage: " << argv[0] << " filename" << endl;
 		exit(1);
 	}
 	//check if the input minterm file exists
@@ -245,12 +251,18 @@ int main(int argc, char *argv[])
 		getline(fin,fileData);
 		minterm m = minterm();
 		buffer = fileData.substr(0,noOfVars);
-		short t;
-		if(!tryParse(t,buffer))
+		vector<short> mintermBits = vector<short>();
+		for(int i = 0; i  < noOfVars; i++)
 		{
-			printf("Invalid input found: %s", fileData);
-			exit(0);
+			short t;
+			if(!tryParse(t,buffer.substr(i,1)))
+			{
+				printf("Invalid input found: %s", fileData);
+				exit(0);
+			}
+			mintermBits.push_back(t);
 		}
+		m = minterm(mintermBits);
 		allMinterms.push_back(m);	
 		//If a term is marked as dont care ,put it into the dc list also
 		size_t found=fileData.find(DONTCARE);
@@ -262,12 +274,12 @@ int main(int argc, char *argv[])
 		mintermcount++;
 	}
 
-	vector< vector <vector<minterm> > > mintermArray(noOfVars-1);
+	vector< vector <vector<minterm> > > mintermArray(noOfVars+1);
 
 	// initialize cells
 	for(int i = 0; i < mintermArray.size(); i++)
 	{
-		mintermArray[i] = vector<vector<minterm> >(noOfVars);
+		mintermArray[i] = vector<vector<minterm> >(noOfVars+1);
 	}
 
 	//initial setup: fill up all the uncombined terms ( all terms will end up in the first row -with zero 'x's)
@@ -283,9 +295,9 @@ int main(int argc, char *argv[])
 	//QM :combining terms
 	//run thru the array from top to bottom and check adjacent cells i,j if they can be combined
 	//put the result in the [i+1th][j-1th] location
-	for(int xes=0; xes < noOfVars -1; xes++) //for every x dont care bit
+	for(int xes=0; xes <= noOfVars -1; xes++) //for every x dont care bit
 	{
-		for(int ones=0; ones < noOfVars -1; ones++)  //for every # of ones
+		for(int ones=0; ones <= noOfVars -1; ones++)  //for every # of ones
 		{
 			vector<minterm> left   = mintermArray[xes][ones];
 			vector<minterm> right  = mintermArray[xes][ones+1];
@@ -302,21 +314,25 @@ int main(int argc, char *argv[])
 						{
 							out.push_back(combined);
 						}
-						vector<minterm>::iterator itr = primeImplicants.begin();
-						primeImplicants.erase(itr+contains(left[i], primeImplicants));
-						itr = primeImplicants.begin();
-						primeImplicants.erase(itr+contains(right[j], primeImplicants));
+						int pos = contains(left[i], primeImplicants);
+						if(pos != -1)
+							primeImplicants.erase(primeImplicants.begin()+pos);
+						pos = contains(right[j], primeImplicants);
+						if(pos != -1)
+							primeImplicants.erase(primeImplicants.begin()+pos);
 						if(contains(combined, primeImplicants) == -1)
 							primeImplicants.push_back(combined);
 					}
 				}
 			}
+			mintermArray[xes+1][ones] = out;
 		}
 	}
 
 	vector<minterm> essPI = solveCoveringTable(allMinterms, dontCares, primeImplicants);
 	printPrimeImplicants(essPI);
-	printf("Number of literals = %d", countLiterals(essPI));
+	printf("Prime Implicant Count: %d \n", essPI.size());
+	printf("Literal Count: %d \n", countLiterals(essPI));
 }
 
 int contains(minterm& term, vector<minterm>& mintermList)
