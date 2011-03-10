@@ -1,5 +1,16 @@
 #pragma once
+/*
+Filename: minterm.h
+description:header for minterm class
+created:6-3-2011
+*/
 #include <vector>
+#include <cstdlib>
+#include <iostream>
+
+using namespace std;
+using std::pair;
+using std::make_pair;
 
 #define DONTCARE 'd'
 #define ONE 1
